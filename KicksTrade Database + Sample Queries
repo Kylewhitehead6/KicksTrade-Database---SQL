@@ -1,0 +1,176 @@
+Create Database Final; 
+Use Final; 
+
+Create Table Employees ( 
+	EmployeeID int NOT NULL, 
+    EmployeeFirstName varchar (250) NOT NULL, 
+    EmployeeLastName varchar (250) NOT NULL,
+    Primary Key (EmployeeID)
+); 
+
+Create Table Users (
+	UserID int NOT NULL,
+    FirstName varchar (250) NOT NULL, 
+    LastName varchar (250) NOT NULL, 
+    Address varchar (250) NOT NULL, 
+    Country varchar (250) NOT NULL, 
+    Email varchar (250) NOT NULL,
+    Age int not null, 
+    check (Age >=18),
+    Primary Key (UserID)
+); 
+
+Create Table Shoes (
+	ShoeID int NOT NULL, 
+    ShoeImage LongBlob, 
+    ShoeBrand varchar (250),
+    ShoeName varchar (250),
+    ShoeColour varchar (250),
+    ShoeQuality varchar (50),
+    UserID int NOT NULL, 
+    Primary Key (ShoeID),
+    Constraint User_ID Foreign Key (UserID) References Users (UserID)
+);
+	
+
+Create Table Trades (
+	TradeID int NOT NULL unique, 
+    TradeDate Date NOT NULL,
+    Primary Key (TradeID)
+);
+
+Create Table Trade_Users ( 
+	UserID1 int not null unique, 
+    UserID2 int not null unique, 
+    TradeID int not null unique,
+    Primary Key (UserID1, UserID2, TradeID), 
+    Constraint UserID1 Foreign Key (UserID1) References Users(UserID), 
+    Constraint UserID2 Foreign Key (UserID2) References Users(UserID), 
+    Constraint TradeID Foreign Key (TradeID) References Trades(TradeID)
+);
+
+Create Table Shipping_Information (
+	ShippingID int NOT NULL,
+    ShippingDate Date NOT NULL, 
+    Primary Key (ShippingID)
+);
+    
+Create Table Trade_Details (
+	TradeDetailsID int NOT NULL, 
+    Details varchar (500) NOT NULL, 
+	TradeID int NOT NULL, 
+    ShippingID int not null, 
+    EmployeeID int not null,
+    Primary KEY (TradeDetailsID),
+    Constraint TradeID2 foreign key (TradeID) references Trades(TradeID),
+    Constraint ShippingID foreign key (ShippingID) references Shipping_Information (ShippingID), 
+    Constraint EmployeeID foreign key (EmployeeID) references Employees (EmployeeID)
+);
+
+Insert into Employees Values (1, "Michael", "Jordan"), (2, "Shaquille", "O'Neal"), (3, "Kyrie", "Irving");
+
+Insert into Users Values (1, "Lebron", "James", "1234 Sesame Street", "USA", "L.James@gmail.com", 33), (2,"Steph", "Curry", "5678 Sesame Street", "USA", "S.Curry@gmail.com", 29), (3,"Luca", "Doncic", "331 Porta Road", "Slovenia", "L.Doncic@hotmail.com", 22);
+
+Insert into Shoes (ShoeID, ShoeBrand, ShoeName, ShoeColour, ShoeQuality, UserID) Values (1, "Nike", "Jordan", "White", "Good", 1), (2,"Air Jordan", "Tokyo T23", "Yellow", "Prestine", 2), (3,"Air Jordan", "Bred 1", "Red", "Good", 3), (4, "Adidas", "UltraBoost", "White", "Poor", 1);
+
+Insert into Trades Values (1, 20191107), (2, 20191109);
+
+Insert into Trade_Users values (1,2,1), (2,1,2);
+
+Insert Into Shipping_Information values (1, 20191108), (2,20191110);
+
+Insert into Trade_Details Values (1, "Lebron James trades away his White Nike Jordan's to Steph Curry for his Yellow Air Jordan Tokyo T23", 1, 1, 1), (2, "Steph Curry trades away his Yellow Air Jordan Tokyo T23 to Lebron James for his White Nike Jordans", 2, 2, 2); 
+
+# 8. Provide an example of running a query on a  M:M relationship of your model
+Select Trade_Users.UserID1, Trade_Users.UserID2, Trade_Users.TradeID 
+From Users, Trade_Users, Trades 
+Where Trades.TradeID = Trade_Users.TradeID
+And Trade_Users.UserID1 = Users.UserID;   
+
+# 9. Provide an example of running a query on a  1:1 relationship of your model
+SELECT Trade_Details.ShippingID 
+FROM Shipping_Information, Trade_Details 
+WHERE Shipping_Information.ShippingID = Trade_Details.ShippingID;
+
+## 10. Write the rest of 18 queries to use all you have learned in this class by the end of the due date of this project (SELECT, UNIQUE, PRIMARY KEY, JOIN, IN, subqueries, EXISTS, HAVING,...)
+
+#1
+SELECT * FROM Users;
+
+#2
+SELECT ShoeName, ShoeColour FROM Shoes
+WHERE ShoeColour = "Yellow";
+
+#3 
+SELECT COUNT(Country) 
+FROM Users
+WHERE Country = "USA";
+
+#4
+SELECT FirstName, LastName, ShoeBrand, ShoeName
+FROM Shoes, Users
+WHERE Shoes.UserID = Users.UserID
+AND ShoeBrand = "Air Jordan";
+
+#5
+SELECT DISTINCT ShoeColour 
+FROM Shoes;
+
+#6
+SELECT AVG(Age) AS AverageAge FROM Users, Shoes
+WHERE Shoes.UserID = Users.UserID
+AND ShoeQuality = "Good";
+
+#7
+SELECT FirstName, LastName, Age FROM Users
+ORDER BY Age DESC LIMIT 1;
+
+#8
+SELECT COUNT(*) AS Users, Country FROM Users, Shoes
+WHERE Shoes.UserID = Users.UserID
+GROUP BY Country
+HAVING COUNT(*) = 1;
+
+#9
+SELECT Email FROM Users
+WHERE Address LIKE "%Road%";
+
+#10
+SELECT ShoeBrand, ShoeName  FROM Shoes
+WHERE ShoeQuality NOT LIKE "Poor";
+
+#11
+SELECT * FROM Trades 
+ORDER BY TradeDate ASC; 
+
+#12
+SELECT FirstName, LastName 
+FROM Users 
+WHERE UserID IN (SELECT UserID from Users where Age < 30);
+
+#13
+SELECT * FROM Shoes 
+WHERE Shoecolour = "White" 
+AND ShoeQuality != "Poor";
+
+#14
+SELECT MIN(Age) 
+FROM Users; 
+
+#15
+Select * FROM Trades 
+WHERE tradedate BETWEEN "20191101" and "20191130"; 
+
+#16
+Select FirstName, LastName, ShoeBrand, ShoeName FROM Users Left Join Shoes on Shoes.UserID = Users.UserID; 
+
+#17
+Select FirstName, LastName 
+FROM Users 
+UNION Select EmployeeFirstName, EmployeeLastName 
+FROM Employees; 
+
+#18
+SELECT EmployeeFirstName, EmployeeLastName, Trade_Details.TradeID
+FROM Employees, Trade_Details
+WHERE Employees.EmployeeID = Trade_Details.EmployeeID;
